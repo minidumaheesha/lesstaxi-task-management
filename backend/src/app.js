@@ -10,7 +10,7 @@ const app = express();
 
 // Start with one trusted proxy on Render; verify after deployment.
 if (process.env.RENDER === "true") {
-  app.set("trust proxy", 1);
+  app.set("trust proxy", 2);
 }
 
 app.use(
