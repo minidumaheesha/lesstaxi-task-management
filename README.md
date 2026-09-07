@@ -310,35 +310,73 @@ Manual checks performed during development include:
 
 Frontend lint and production build checks passed locally.
 
-Production smoke testing remains pending deployment.
+The following checks passed on the deployed Render application:
+
+- Login and dashboard access.
+- Task creation and self-assignment.
+- Drag-and-drop status changes persisting after browser refresh.
+- Task editing and deletion.
+- Administrator user listing and task reassignment.
+- Mobile usability.
+- Redirecting logged-out visitors from the dashboard to login.
 
 ## Deployment
 
-Deployment is in progress. Live URLs and final hosting instructions
-will be added before submission.
+- Frontend: https://lesstaxi-frontend.onrender.com
+- Backend: https://lesstaxi-task-management.onrender.com
+- Health endpoint: https://lesstaxi-task-management.onrender.com/api/health
 
-Deployment configuration must include:
+Both applications are deployed from this repository's main branch.
 
-- Backend environment variables and database network access.
-- `NODE_ENV=production` on the backend.
-- `CLIENT_URL` set to the deployed frontend origin.
-- `VITE_API_URL` set to the deployed backend URL ending in `/api`.
-- Frontend routing fallback so direct visits to `/login` and
-  `/dashboard` serve the application.
-- Correct proxy configuration for client-IP rate limiting.
+### Frontend — Render Static Site
 
-The frontend API URL is included at build time. Rebuild the frontend
-after changing it.
+- Root directory: frontend
+- Build command: npm ci && npm run build
+- Publish directory: dist
+- Environment variable:
+  VITE_API_URL=https://lesstaxi-task-management.onrender.com/api
+- Rewrite: /* → /index.html
+
+The rewrite supports direct navigation and refreshes on React Router pages.
+
+### Backend — Render Web Service
+
+- Root directory: backend
+- Build command: npm ci
+- Start command: npm start
+- NODE_ENV: production
+- CLIENT_URL: https://lesstaxi-frontend.onrender.com
+- MONGODB_URI and JWT_SECRET are configured privately in Render.
+- JWT_EXPIRES_IN: 7d
+- Render supplies the listening port.
+- Render outbound IP ranges are allowed in MongoDB Atlas.
+
+The Render deployment uses three trusted proxy hops, verified against
+the observed request chain and a spoofed forwarding-header check.
+Recheck this configuration if the hosting topology changes.
+
+### Hosting limitation
+
+The free backend instance can sleep after inactivity, delaying the first
+request while it starts. If the initial request times out, allow the
+backend to wake and retry.
 
 ## Screenshots
 
-Final application screenshots will be added before submission:
+### Login
+![Login page](docs/screenshots/login.png)
 
-- Login and registration.
-- Normal-user task board.
-- Administrator board and registered-user list.
-- Task assignment and editing.
-- Mobile layout.
+### Registration
+![Registration page](docs/screenshots/register.png)
+
+### User task board
+![User task board](docs/screenshots/user-dashboard.png)
+
+### Administrator dashboard
+![Administrator dashboard](docs/screenshots/admin-dashboard.png)
+
+### Mobile layout
+![Mobile task board](docs/screenshots/mobile-board.png)
 
 ## Author
 
