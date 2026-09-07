@@ -1,6 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
+import {
+  errorHandler,
+  notFound,
+} from "./middleware/errorMiddleware.js";
 
 const app = express();
 
@@ -20,11 +27,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "API endpoint not found",
-  });
-});
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/tasks", taskRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
