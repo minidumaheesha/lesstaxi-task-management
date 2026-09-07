@@ -23,13 +23,52 @@ export const protect = async (req, res, next) => {
     });
   }
 
+  if (!process.env.JWT_SECRET) {
+    return next(new Error("JWT_SECRET is not configured"));
+  }
+
+  let decodedToken;
+
   try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET, {
+    decodedToken = jwt.verify(token, process.env.JWT_SECRET, {
       algorithms: ["HS256"],
       issuer: "lesstaxi-task-manager-api",
       audience: "lesstaxi-task-manager-client",
     });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication token has expired",
+      });
+    }
 
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "NotBeforeError"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authentication token",
+      });
+    }
+
+    return next(error);
+  }
+
+  if (
+    typeof decodedToken !== "object" ||
+    decodedToken === null ||
+    typeof decodedToken.sub !== "string" ||
+    !/^[a-fA-F0-9]{24}$/.test(decodedToken.sub)
+  ) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid authentication token",
+    });
+  }
+
+  try {
     const user = await User.findById(decodedToken.sub);
 
     if (!user) {
@@ -40,19 +79,9 @@ export const protect = async (req, res, next) => {
     }
 
     req.user = user;
-    next();
+    return next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication token has expired",
-      });
-    }
-
-    return res.status(401).json({
-      success: false,
-      message: "Invalid authentication token",
-    });
+    return next(error);
   }
 };
 
@@ -65,6 +94,6 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
-    next();
+    return next();
   };
 };
