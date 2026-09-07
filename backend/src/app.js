@@ -33,16 +33,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/tasks", taskRoutes);
 
-app.get("/api/proxy-check", (req, res) => {
-  res.set("Cache-Control", "no-store");
-
-  res.json({
-    trustProxy: app.get("trust proxy"),
-    detectedIp: req.ip,
-    forwardedFor: req.get("x-forwarded-for") || null,
-    socketAddress: req.socket.remoteAddress,
-  });
-});
 app.use(notFound);
 app.use(errorHandler);
 
